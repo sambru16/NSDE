@@ -49,14 +49,6 @@ def fill_mat_V4(n):
   row.append(0)
   col.append(0)
   data.append(2.0)
-
-  #row[0] = 0
-  #col[0] = 0
-  #data[0] = 2.0
-  #for i in range(0,n):
-  #  row.append(i)
-  #  col.append(i)
-  #  data.append(2.0)
   
   for i in range(1,n-1):
     row.append(i)
@@ -85,40 +77,128 @@ def fill_mat_V4(n):
 
 
 
-
-
 #%%
-n = 10000
-m = 10000
-number_tests = 1
+n = 100
+m = 10
+number_tests = 5
+
 
 A = None
-elapsed_time_total = 0.0
+elapsed_time = 0.0
 elapsed_time_avg = 0.0
 
-for i in range(0,number_tests):
-  tic = time.perf_counter()
-  A = fill_mat_V3(n)
-  toc = time.perf_counter()
-  elapsed_time_total = elapsed_time_total + (toc - tic)
-  print(f"================= V3 total elapsed time: {elapsed_time_total*1000} ms")
-  print(f"====================== size of A is: {sys.getsizeof(A)/(1024**2)} MB")
-
-  tic = time.perf_counter()
-  A = fill_mat_V4(n)
-  toc = time.perf_counter()
-  elapsed_time_total = elapsed_time_total + (toc - tic)
-  print(f"================= V4 total elapsed time: {elapsed_time_total*1000} ms")
-  print(f"====================== size of A is: {sys.getsizeof(A)/(1024**2)} MB")
-
-elapsed_time_avg = elapsed_time_total/number_tests
-print(f"================= avg elapsed time: {elapsed_time_avg*1000} ms")
+n_values = []
+v1_times = []
+v2_times = []
+v3_times = []
+v4_times = []
+v1_sizes = []
+v2_sizes = []
+v3_sizes = []
+v4_sizes = []
 
 
+for j in range (0, 3): #nicht groesser als 10 -> dauert zu lange
+  n_values.append(n)
 
-plt.plot()
-plt.show
+  elapsed_time = 0.0
+  elapsed_time_avg = 0.0
+  for i in range(0,number_tests):
+    tic = time.perf_counter()
+    A = fill_mat_V1(n,n)
+    toc = time.perf_counter()
+    elapsed_time = elapsed_time + (toc - tic)
 
+  elapsed_time_avg = elapsed_time/number_tests
+  v1_times.append(elapsed_time_avg*1000)
+  v1_sizes.append(sys.getsizeof(A) / (1024 ** 2))
+  print(f"================= V1 avg total elapsed time: {elapsed_time_avg*1000} ms")
+  print(f"====================== size of A (V1) is: {sys.getsizeof(A)/(1024**2)} MB") 
+
+  elapsed_time = 0.0
+  elapsed_time_avg = 0.0
+
+  for i in range(0,number_tests):
+    tic = time.perf_counter()
+    A = fill_mat_V2(n,n)
+    toc = time.perf_counter()
+    elapsed_time = elapsed_time + (toc - tic)
+
+  elapsed_time_avg = elapsed_time/number_tests
+  v2_times.append(elapsed_time_avg*1000)
+  v2_sizes.append(sys.getsizeof(A) / (1024 ** 2))
+  print(f"================= V2 avg total elapsed time: {elapsed_time_avg*1000} ms")
+  print(f"====================== size of A (V2) is: {sys.getsizeof(A)/(1024**2)} MB") 
+
+  elapsed_time = 0.0
+  elapsed_time_avg = 0.0
+
+  for i in range(0,number_tests):
+    tic = time.perf_counter()
+    A = fill_mat_V3(n)
+    toc = time.perf_counter()
+    elapsed_time = elapsed_time + (toc - tic)
+
+  elapsed_time_avg = elapsed_time/number_tests
+  v3_times.append(elapsed_time_avg*1000)
+  v3_sizes.append(sys.getsizeof(A) / (1024 ** 2))
+  print(f"================= V3 avg total elapsed time: {elapsed_time_avg*1000} ms")
+  print(f"====================== size of A (V3) is: {sys.getsizeof(A)/(1024**2)} MB") 
+
+  elapsed_time = 0.0
+  elapsed_time_avg = 0.0
+
+  for i in range(0,number_tests):
+    tic = time.perf_counter()
+    A = fill_mat_V4(n)
+    toc = time.perf_counter()
+    elapsed_time = elapsed_time + (toc - tic)
+
+  elapsed_time_avg = elapsed_time/number_tests
+  v4_times.append(elapsed_time_avg*1000)
+  v4_sizes.append(sys.getsizeof(A) / (1024 ** 2))
+  print(f"================= V4 avg total elapsed time: {elapsed_time_avg*1000} ms")
+  print(f"====================== size of A (V4) is: {sys.getsizeof(A)/(1024**2)} MB") 
+
+
+  n = n + 500
+
+# # === PLOT: Laufzeiten ===
+plt.figure(figsize=(10, 6))
+plt.plot(n_values, v1_times, label='fill_mat_V1', marker='o')
+plt.plot(n_values, v2_times, label='fill_mat_V2', marker='o')
+plt.plot(n_values, v3_times, label='fill_mat_V3', marker='o')
+plt.plot(n_values, v4_times, label='fill_mat_V4 (Sparse)', marker='o')
+
+
+
+#plt.xscale('log')
+#plt.yscale()
+plt.xlabel("Matrixgröße n")
+plt.ylabel(f"Laufzeit in Millisekunden bei {number_tests} Durchlaeufen pro Funktion pro n")
+plt.title("Laufzeitvergleich der Funktionen V1 bis V4")
+plt.legend()
+plt.grid(True, which="both", linestyle='--', linewidth=0.5)
+#plt.tight_layout()
+plt.show()
+
+# === PLOT: Speicherverbrauch ===
+plt.figure(figsize=(10, 6))
+plt.plot(n_values, v1_sizes, label='fill_mat_V1', marker='o')
+plt.plot(n_values, v2_sizes, label='fill_mat_V2', marker='o')
+plt.plot(n_values, v3_sizes, label='fill_mat_V3', marker='o')
+plt.plot(n_values, v4_sizes, label='fill_mat_V4 (Sparse)', marker='o')
+
+
+#plt.xscale('log')
+#plt.yscale('log')
+plt.xlabel("Matrixgröße n")
+plt.ylabel("Speicherverbrauch in MB")
+plt.title("Speicherverbrauch der Funktionen V1 bis V4")
+plt.legend()
+plt.grid(True, which="both", linestyle='--', linewidth=0.5)
+#plt.tight_layout()
+plt.show()
 
 # %%
 """
