@@ -1,0 +1,16 @@
+{
+    "geometry": {
+        "length": 10.0,
+        "width": 5.0
+    },
+    "boundary_conditions": {
+        "type": "Dirichlet",
+        "value": 0.0
+    },
+    "material": {
+        "tensor": [
+            [1.0, 0.0],
+            [0.0, 1.0]
+        ]
+    }
+}
