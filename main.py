@@ -1,4 +1,5 @@
 from input import InputData
+from mesh import QuadMesh
 from exportRes import EXPORT
 import numpy as np
 from typing import Final
