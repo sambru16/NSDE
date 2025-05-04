@@ -28,12 +28,12 @@ class QuadMesh:
         self.elements = []
         for i in range(self.cy):
             for j in range(self.cx):
-                n0 = i * (self.cx + 1) + i
+                n0 = i * (self.cx + 1) + j
                 n1 = n0 + 1
-                n2 = n1 + self.nx + 1
-                n3 = n0 + self.nx + 1
+                n2 = n1 + self.cx + 1
+                n3 = n0 + self.cx + 1
                 self.elements.append([n0, n1, n2, n3])
-            self.elements = np.array(self.elements)
+        self.elements = np.array(self.elements)
 
     #Get node coordinates
     def get_nodes(self):

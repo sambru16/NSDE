@@ -3,6 +3,8 @@ from mesh import QuadMesh
 from exportRes import EXPORT
 import numpy as np
 from typing import Final
+from materialModel import MaterialModel
+from scipy.sparse.linalg import spsolve
 
 def main():
     # Read input data
@@ -20,18 +22,21 @@ def main():
     boundary_conditions = input_data.BOUNDARY_CONDITION
     print(f"Length: {length}, Width: {width}, Tensor: {tensor}")
 
-    # Example data for export (replace with actual simulation results)
-    nodesPerEl = 4
-    nElements = 2
-    nNodes = 4
-    dim = 2
-    U = np.array([0.0, 0.1, 0.2, 0.3])  # Example results vector
-    geom = np.array([[0, 0], [length, 0], [0, width], [length, width]])
-    connec_plot = np.array([[0, 1, 3, 2]])
-    n_dof_p_node = 1
+    # Generate mesh
+    mesh = QuadMesh(length, width, input_data.CX, input_data.CY)
+
+    # Initialize material model
+    material_model = MaterialModel(mesh, tensor, boundary_conditions)
+    material_model.assemble_system()
+
+    # Solve the system
+    U = spsolve(material_model.stiffness_matrix.tocsr(), material_model.load_vector)
+    print("Solution vector:", U)
 
     # Export results
-    exporter = EXPORT(nodesPerEl, nElements, nNodes, dim, U, geom, connec_plot, n_dof_p_node)
+    geom = mesh.get_nodes()
+    connec_plot = mesh.get_elements()
+    exporter = EXPORT(4, len(connec_plot), len(geom), 2, U, geom, connec_plot, 1)
     try:
         result_message = exporter.writeResults()
         print(result_message)

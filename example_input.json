@@ -4,13 +4,30 @@
         "width": 5.0
     },
     "boundary_conditions": {
-        "type": "Dirichlet",
-        "value": 0.0
+        "Dirichlet": [
+            {"node": 0, "value": 0.0},
+            {"node": 10, "value": 1.0}
+        ],
+        "Neumann": [
+            {"node": 5, "value": 0.5}
+        ],
+        "Line": [
+            {
+                "type": "Dirichlet",
+                "start": [2.0, 1.0],
+                "end": [8.0, 1.0],
+                "value": 0.2
+            }
+        ]
     },
     "material": {
         "tensor": [
             [1.0, 0.0],
             [0.0, 1.0]
         ]
+    },
+    "mesh": {
+        "cx": 10,
+        "cy": 5
     }
 }
