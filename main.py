@@ -8,6 +8,31 @@ from scipy.sparse import lil_matrix
 from scipy.sparse.linalg import spsolve
 from assembler import assembleSystem
 from boundaryConditions import applyBoundaryConditions
+import matplotlib.pyplot as plt
+from matplotlib.collections import PolyCollection
+
+def plot_quadmesh(mesh, U):
+    """
+    Plots the result of the FEM simulation using pcolormesh.
+    """
+    cx, cy = mesh.cx, mesh.cy
+    nodes = mesh.get_nodes()
+
+    # Reshape the nodes and solution vector for plotting
+    X = nodes[:, 0].reshape((cy + 1, cx + 1))
+    Y = nodes[:, 1].reshape((cy + 1, cx + 1))
+    Z = U.reshape((cy + 1, cx + 1))  # Reshape U to match the mesh grid
+
+    fig, ax = plt.subplots()
+    c = ax.pcolormesh(X, Y, Z, cmap='viridis', shading='auto')
+    fig.colorbar(c, ax=ax)
+    ax.set_aspect('equal')
+    ax.set_xlabel('x')
+    ax.set_ylabel('y')
+    ax.set_title('FEM-Results')
+    plt.grid(True)
+    plt.tight_layout()
+    plt.show()
 
 def main():
     # Read input data
@@ -51,6 +76,9 @@ def main():
         print(exporter.writeResults())
     except Exception as e:
         print(f"Error exporting results: {e}")
+
+    plot_quadmesh(mesh, U)
+
 
 if __name__ == "__main__":
     main()

@@ -6,7 +6,7 @@
     "boundary_conditions": {
         "Dirichlet": [
             {"node": 0, "value": 0.0},
-            {"node": 10, "value": 1.0}
+            {"node": 30, "value": 1.0}
         ],
         "Neumann": [
             {"node": 5, "value": 0.5}
