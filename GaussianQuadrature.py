@@ -1,5 +1,5 @@
 import numpy
-import ShapeFunctions
+from shapefunctions import ShapeFunctions
 
 class GaussianQuadrature:
     """
