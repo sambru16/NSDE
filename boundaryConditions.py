@@ -159,5 +159,48 @@ class BoundaryCondition:
                     load_vector[idx] += mean_val
 
         # Handle inside conditions
+        nodes = np.array(mesh.get_nodes())
+        tol = 1e-8
+        for inside in self.inside_:
+            btype = inside.get("type", "").lower()
+            starts = inside.get("start", [])
+            ends = inside.get("end", [])
+            value = inside.get("value", 0.0)
+            if not (starts and ends and len(starts) == len(ends)):
+                continue
+            for seg_start, seg_end in zip(starts, ends):
+                seg_start = np.array(seg_start)
+                seg_end = np.array(seg_end)
+                seg_vec = seg_end - seg_start
+                seg_len = np.linalg.norm(seg_vec)
+                if seg_len < tol:
+                    continue
+                seg_dir = seg_vec / seg_len
+                # Find all nodes close to the segment (project and check distance)
+                for idx, node in enumerate(nodes):
+                    rel = node - seg_start
+                    proj = np.dot(rel, seg_dir)
+                    if proj < -tol or proj > seg_len + tol:
+                        continue
+                    closest = seg_start + proj * seg_dir
+                    dist = np.linalg.norm(node - closest)
+                    if dist < tol:
+                        # Node is on the segment
+                        if btype == "dirichlet":
+                            # Dirichlet: overwrite row/col and set value
+                            stiffness_matrix[idx, :] = 0
+                            stiffness_matrix[idx, idx] = 1
+                            if callable(value):
+                                v = value(node[0], node[1])
+                            else:
+                                v = value
+                            load_vector[idx] = v
+                        elif btype == "neumann":
+                            # Neumann: add to load vector (approximate as point load)
+                            if callable(value):
+                                v = value(node[0], node[1])
+                            else:
+                                v = value
+                            load_vector[idx] += v
 
 
