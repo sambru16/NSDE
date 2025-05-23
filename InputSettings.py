@@ -16,9 +16,9 @@ TENSOR: Final[list[list[float]]] = [
 # Boundary conditions
 # Dirichlet boundary conditions
 DIRICHLET_BC: Final[list[dict]] = [
-    {"right": lambda x: 0.0},
+    {"right": lambda x: 3.0-x},
     {"left": lambda x: 1.0},
-    {"top": lambda y: y},
+    {"top": lambda y: 8.0},
     {"bottom": lambda y: 0.0}
 ]
 

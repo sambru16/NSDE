@@ -35,16 +35,6 @@ class InputData:
                     break
             if not found:
                 continue
-        # Collisions in Dirichlet conditions
-        # TODO: Look if they are the same
-        if "LEFT" in self.DIRICHLET_BOUNDARY_CONDITIONS and "TOP" in self.DIRICHLET_BOUNDARY_CONDITIONS:
-            print("Dirichlet conditions collide at top-left corner. Arithmetic middle will be used.")
-        if "RIGHT" in self.DIRICHLET_BOUNDARY_CONDITIONS and "BOTTOM" in self.DIRICHLET_BOUNDARY_CONDITIONS:
-            print("Dirichlet conditions collide at bottom-right corner. Arithmetic middle will be used.")
-        if "LEFT" in self.DIRICHLET_BOUNDARY_CONDITIONS and "BOTTOM" in self.DIRICHLET_BOUNDARY_CONDITIONS:
-            print("Dirichlet conditions collide at bottom-left corner. Arithmetic middle will be used.")
-        if "RIGHT" in self.DIRICHLET_BOUNDARY_CONDITIONS and "TOP" in self.DIRICHLET_BOUNDARY_CONDITIONS:
-            print("Dirichlet conditions collide at top-right corner. Arithmetic middle will be used.")
         
         # Boundary conditions (Neumann)
         self.NEUMANN_BOUNDARY_CONDITIONS = {}

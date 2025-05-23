@@ -1,19 +1,18 @@
 from input import InputData
 from mesh import QuadMesh
 from exportRes import EXPORT
-import numpy as np
 from typing import Final
 from materialModel import MaterialModel
-from scipy.sparse import lil_matrix
 from scipy.sparse.linalg import spsolve
 from assembler import assembleSystem
 from boundaryConditions import applyBoundaryConditions
 import matplotlib.pyplot as plt
-from matplotlib.collections import PolyCollection
+from boundaryConditions import BoundaryCondition
 
 def plot_quadmesh(mesh, U):
     """
     Plots the result of the FEM simulation using pcolormesh.
+    Prints the value in every box (cell) of the plot.
     """
     cx, cy = mesh.cx, mesh.cy
     nodes = mesh.get_nodes()
@@ -32,6 +31,19 @@ def plot_quadmesh(mesh, U):
     ax.set_title('FEM-Results')
     plt.grid(True)
     plt.tight_layout()
+
+    # Print the value in every box (cell)
+    #for i in range(cy):
+    #    for j in range(cx):
+    #        # Compute the center of the cell
+    #        x_center = 0.25 * (X[i, j] + X[i+1, j] + X[i, j+1] + X[i+1, j+1])
+    #        y_center = 0.25 * (Y[i, j] + Y[i+1, j] + Y[i, j+1] + Y[i+1, j+1])
+    #        # Get the values at the four corners of the cell
+    #        z_vals = [Z[i, j], Z[i+1, j], Z[i, j+1], Z[i+1, j+1]]
+    #        # Arithmetic mean for the cell value
+    #        cell_val = sum(z_vals) / 4
+    #        ax.text(x_center, y_center, f"{cell_val:.2f}", color='white', ha='center', va='center', fontsize=8, weight='bold')
+
     plt.show()
 
 def main():
@@ -43,25 +55,20 @@ def main():
         return
 
     # Extract data from input
-    length = input_data.LENGTH
-    width = input_data.WIDTH
-    tensor = input_data.TENSOR
-    boundary_conditions = input_data.DIRICHLET_BOUNDARY_CONDITIONS
-    print(f"Length: {length}, Width: {width}, Tensor: {tensor}")
+    boundary_conditions = BoundaryCondition(input_data.DIRICHLET_BOUNDARY_CONDITIONS)
+    print(f"Length: {input_data.LENGTH}, Width: {input_data.WIDTH}, Tensor: {input_data.TENSOR}")
 
     # Generate mesh
-    mesh = QuadMesh(length, width, input_data.CX, input_data.CY)
+    mesh = QuadMesh(input_data.LENGTH, input_data.WIDTH, input_data.CX, input_data.CY)
 
     # Initialize material model
-    material_model = MaterialModel(tensor)
+    material_model = MaterialModel(input_data.TENSOR)
 
     # returns the stiffness matrix and load vector
     stiffness_matrix, load_vector = assembleSystem(mesh, material_model)
     # apply boundary conditions
-    applyBoundaryConditions(mesh, boundary_conditions, stiffness_matrix, load_vector)
-    #print("Stiffness matrix:", stiffness_matrix)
-    #print("Load vector:", load_vector)
-
+    boundary_conditions.apply(mesh, stiffness_matrix, load_vector)
+    #applyBoundaryConditions(mesh, input_data.DIRICHLET_BOUNDARY_CONDITIONS, stiffness_matrix, load_vector)
 
     # Solve the system
     U = spsolve(stiffness_matrix.tocsr(), load_vector)
