@@ -5,7 +5,6 @@ from typing import Final
 from materialModel import MaterialModel
 from scipy.sparse.linalg import spsolve
 from assembler import assembleSystem
-from boundaryConditions import applyBoundaryConditions
 import matplotlib.pyplot as plt
 from boundaryConditions import BoundaryCondition
 
@@ -55,7 +54,6 @@ def main():
         return
 
     # Extract data from input
-    boundary_conditions = BoundaryCondition(input_data.DIRICHLET_BOUNDARY_CONDITIONS)
     print(f"Length: {input_data.LENGTH}, Width: {input_data.WIDTH}, Tensor: {input_data.TENSOR}")
 
     # Generate mesh
@@ -67,7 +65,7 @@ def main():
     # returns the stiffness matrix and load vector
     stiffness_matrix, load_vector = assembleSystem(mesh, material_model)
     # apply boundary conditions
-    boundary_conditions.apply(mesh, stiffness_matrix, load_vector)
+    input_data.boundary.apply(mesh, stiffness_matrix, load_vector)
     #applyBoundaryConditions(mesh, input_data.DIRICHLET_BOUNDARY_CONDITIONS, stiffness_matrix, load_vector)
 
     # Solve the system

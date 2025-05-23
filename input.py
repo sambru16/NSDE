@@ -1,6 +1,7 @@
 from typing import Final
 import InputSettings
 import numpy as np
+from boundaryConditions import BoundaryCondition
 
 class InputData:
     def __init__(self):
@@ -23,45 +24,15 @@ class InputData:
         self.TENSOR: Final[list] = InputSettings.TENSOR
         if not isinstance(self.TENSOR, list) or len(self.TENSOR) < 2 or len(self.TENSOR[0]) < 2:
             raise ValueError("Material tensor must be at least a 2x2 matrix.")
-        
-        # Boundary conditions (Dirichlet)
-        self.DIRICHLET_BOUNDARY_CONDITIONS = {}
-        for side in ["LEFT", "RIGHT", "TOP", "BOTTOM"]:
-            found = False
-            for bc in InputSettings.DIRICHLET_BC:
-                if side.lower() in bc:
-                    self.DIRICHLET_BOUNDARY_CONDITIONS[side] = bc[side.lower()]
-                    found = True
-                    break
-            if not found:
-                continue
-        
-        # Boundary conditions (Neumann)
-        self.NEUMANN_BOUNDARY_CONDITIONS = {}
-        for side in ["LEFT", "RIGHT", "TOP", "BOTTOM"]:
-            found = False
-            for bc in InputSettings.NEUMANN_BC:
-                if side.lower() in bc:
-                    self.NEUMANN_BOUNDARY_CONDITIONS[side] = bc[side.lower()]
-                    found = True
-                    break
-            if not found:
-                continue
-        # Collisions in Neumann conditions
-        # TODO: Look if they are the same
-        if "LEFT" in self.NEUMANN_BOUNDARY_CONDITIONS and "TOP" in self.NEUMANN_BOUNDARY_CONDITIONS:
-            print("Neumann conditions collide at top-left corner. Arithmetic middle will be used.")
-        if "RIGHT" in self.NEUMANN_BOUNDARY_CONDITIONS and "BOTTOM" in self.NEUMANN_BOUNDARY_CONDITIONS:
-            print("Neumann conditions collide at bottom-right corner. Arithmetic middle will be used.")
-        if "LEFT" in self.NEUMANN_BOUNDARY_CONDITIONS and "BOTTOM" in self.NEUMANN_BOUNDARY_CONDITIONS:
-            print("Neumann conditions collide at bottom-left corner. Arithmetic middle will be used.")
-        if "RIGHT" in self.NEUMANN_BOUNDARY_CONDITIONS and "TOP" in self.NEUMANN_BOUNDARY_CONDITIONS:
-            print("Neumann conditions collide at top-right corner. Arithmetic middle will be used.")
 
-        # Inside boundary conditions
-        self.INSIDE_BOUNDARY_CONDITIONS = InputSettings.INSIDE_BC
-        
+        # Boundary conditions
+        dirichlet_bc = InputSettings.DIRICHLET_BC
+        neumann_bc = getattr(InputSettings, "NEUMANN_BC", [])
+        inside_bc = getattr(InputSettings, "INSIDE_BC", [])
 
+        self.boundary = BoundaryCondition(
+            dirichlet_bc, neumann_bc, inside_bc,
+            [self.LENGTH / self.CX, self.WIDTH / self.CY])
 
 # Example usage
 if __name__ == "__main__":
@@ -73,6 +44,6 @@ if __name__ == "__main__":
         print(f"CX: {input_data.CX}")
         print(f"CY: {input_data.CY}")
         print(f"Tensor: {input_data.TENSOR}")
-        print(f"Boundary Conditions: {input_data.DIRICHLET_BOUNDARY_CONDITIONS}")
+        print(f"Boundary Conditions: {input_data.boundary}")
     except Exception as e:
         print(f"Error: {e}")

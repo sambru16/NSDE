@@ -17,7 +17,7 @@ TENSOR: Final[list[list[float]]] = [
 # Dirichlet boundary conditions
 DIRICHLET_BC: Final[list[dict]] = [
     {"right": lambda x: 3.0-x},
-    {"left": lambda x: 1.0},
+    {"left": lambda x: 5.0},
     {"top": lambda y: 8.0},
     {"bottom": lambda y: 0.0}
 ]
@@ -25,8 +25,8 @@ DIRICHLET_BC: Final[list[dict]] = [
 # Neumann boundary conditions
 NEUMANN_BC: Final[list[dict]] = [
     {"right": 0.0},
-    {"left": 0.0},
-    {"top": 0.0},
+    {"left": 2.0},
+    {"top": 1.0},
     {"bottom": 0.0}
 ]
 
