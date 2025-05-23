@@ -11,9 +11,8 @@ from boundaryConditions import applyBoundaryConditions
 
 def main():
     # Read input data
-    input_file = "example_input.json"
     try:
-        input_data: Final[InputData] = InputData(input_file)
+        input_data: Final[InputData] = InputData()
     except Exception as e:
         print(f"Error reading input: {e}")
         return
@@ -22,7 +21,7 @@ def main():
     length = input_data.LENGTH
     width = input_data.WIDTH
     tensor = input_data.TENSOR
-    boundary_conditions = input_data.BOUNDARY_CONDITION
+    boundary_conditions = input_data.DIRICHLET_BOUNDARY_CONDITIONS
     print(f"Length: {length}, Width: {width}, Tensor: {tensor}")
 
     # Generate mesh
