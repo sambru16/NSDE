@@ -26,7 +26,7 @@ class InputData:
             raise ValueError("Material tensor must be at least a 2x2 matrix.")
 
         # Boundary conditions
-        dirichlet_bc = InputSettings.DIRICHLET_BC
+        dirichlet_bc = getattr(InputSettings, "DIRICHLET_BC", [])
         neumann_bc = getattr(InputSettings, "NEUMANN_BC", [])
         inside_bc = getattr(InputSettings, "INSIDE_BC", [])
 

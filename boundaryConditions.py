@@ -158,49 +158,45 @@ class BoundaryCondition:
                     print(f"Neumann conditions collide at {name.replace('_', '-')} corner. Arithmetic middle [value: {mean_val}] will be used.")
                     load_vector[idx] += mean_val
 
-        # Handle inside conditions
+        # -----------------------------------------
+        # apply inside conditions
+        # -----------------------------------------
         nodes = np.array(mesh.get_nodes())
-        tol = 1e-8
+        elements = mesh.get_elements() if hasattr(mesh, "get_elements") else []
         for inside in self.inside_:
             btype = inside.get("type", "").lower()
-            starts = inside.get("start", [])
-            ends = inside.get("end", [])
-            value = inside.get("value", 0.0)
-            if not (starts and ends and len(starts) == len(ends)):
-                continue
-            for seg_start, seg_end in zip(starts, ends):
-                seg_start = np.array(seg_start)
-                seg_end = np.array(seg_end)
-                seg_vec = seg_end - seg_start
-                seg_len = np.linalg.norm(seg_vec)
-                if seg_len < tol:
-                    continue
-                seg_dir = seg_vec / seg_len
-                # Find all nodes close to the segment (project and check distance)
-                for idx, node in enumerate(nodes):
-                    rel = node - seg_start
-                    proj = np.dot(rel, seg_dir)
-                    if proj < -tol or proj > seg_len + tol:
-                        continue
-                    closest = seg_start + proj * seg_dir
-                    dist = np.linalg.norm(node - closest)
-                    if dist < tol:
-                        # Node is on the segment
-                        if btype == "dirichlet":
-                            # Dirichlet: overwrite row/col and set value
-                            stiffness_matrix[idx, :] = 0
-                            stiffness_matrix[idx, idx] = 1
-                            if callable(value):
-                                v = value(node[0], node[1])
-                            else:
-                                v = value
-                            load_vector[idx] = v
-                        elif btype == "neumann":
-                            # Neumann: add to load vector (approximate as point load)
-                            if callable(value):
-                                v = value(node[0], node[1])
-                            else:
-                                v = value
-                            load_vector[idx] += v
-
-
+            # New format: x_range, y(x), value(x, y)
+            if "x_range" in inside and "y" in inside and "value" in inside:
+                x_range = inside["x_range"]
+                y_func = inside["y"]
+                value_func = inside["value"]
+                x_min, x_max = x_range
+                # Discretize the line into segments between mesh nodes in x
+                x_vals = [x_min + i * (x_max - x_min) / max(1, mesh.cx) for i in range(mesh.cx + 1)]
+                for i in range(len(x_vals) - 1):
+                    x0, x1 = x_vals[i], x_vals[i+1]
+                    y0, y1 = y_func(x0), y_func(x1)
+                    p0 = np.array([x0, y0])
+                    p1 = np.array([x1, y1])
+                    # For each element, check if the segment [p0, p1] crosses the element
+                    for elem in elements:
+                        elem_nodes = nodes[list(elem)]
+                        x_e_min, y_e_min = np.min(elem_nodes, axis=0)
+                        x_e_max, y_e_max = np.max(elem_nodes, axis=0)
+                        # Check if either p0 or p1 is inside the element bounding box
+                        for pt in [p0, p1]:
+                            if (x_e_min <= pt[0] <= x_e_max) and (y_e_min <= pt[1] <= y_e_max):
+                                # Find nearest node in this element to pt
+                                dists = np.linalg.norm(elem_nodes - pt, axis=1)
+                                local_idx = np.argmin(dists)
+                                global_idx = elem[local_idx]
+                                x, y = nodes[global_idx]
+                                if btype == "dirichlet":
+                                    stiffness_matrix[global_idx, :] = 0
+                                    stiffness_matrix[global_idx, global_idx] = 1
+                                    v = value_func(x, y)
+                                    load_vector[global_idx] = v
+                                elif btype == "neumann":
+                                    v = value_func(x, y)
+                                    load_vector[global_idx] += v
+                                break  # Only apply to one node per element per segment
