@@ -42,3 +42,11 @@ class QuadMesh:
     #Get elements
     def get_elements(self):
         return self.elements
+
+    def get_output_elements(self):
+        for element in self.elements:
+            a = element[2]
+            element[2] = element[3]
+            element[3] = a
+        print(element)
+        return self.elements

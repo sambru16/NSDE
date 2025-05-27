@@ -74,7 +74,7 @@ def main():
 
     # Export results
     geom = mesh.get_nodes()
-    connec_plot = mesh.get_elements()
+    connec_plot = mesh.get_output_elements()
     exporter = EXPORT(4, len(connec_plot), len(geom), 2, U, geom, connec_plot, 1)
     try:
         print(exporter.writeResults())
