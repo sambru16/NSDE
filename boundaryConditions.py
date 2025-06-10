@@ -3,9 +3,9 @@ from GaussianQuadrature import GaussianQuadrature
 
 class BoundaryCondition:
     def __init__(self, dirichlet, neumann, inside, element_lenght):
-        self.dirichlet_ = dirichlet
-        self.neumann_ = neumann
-        self.inside_ = inside
+        self.dirichlet_ = dirichlet if dirichlet is not None else []
+        self.neumann_ = neumann if neumann is not None else []
+        self.inside_ = inside  if inside is not None else []
         self.element_lenght_ = element_lenght
 
     def apply(self, mesh, stiffness_matrix, load_vector):
@@ -165,6 +165,8 @@ class BoundaryCondition:
         elements = mesh.get_elements() if hasattr(mesh, "get_elements") else []
         for inside in self.inside_:
             btype = inside.get("type", "").lower()
+            if btype == "None":
+                break
             # New format: x_range, y(x), value(x, y)
             if "x_range" in inside and "y" in inside and "value" in inside:
                 x_range = inside["x_range"]

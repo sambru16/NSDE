@@ -7,22 +7,24 @@ WIDTH: Final[float] = 50.0
 CX: Final[int] = 100
 CY: Final[int] = 50
 
+#Material tensor
 TENSOR: Final[list[list[float]]] = [
-    [1.0, 0.0, 0.0],
-    [0.0, 1.0, 0.0],
-    [0.0, 0.0, 1.0]
+    [1.0, 0.0],
+    [0.0, 1.0]
 ]
 
 # Boundary conditions
 # Dirichlet boundary conditions
+# Usage: {"side": lambda x: value}
 DIRICHLET_BC: Final[list[dict]] = [
     {"right": lambda x: -3},
-    {"left": lambda x: 0.0},
+    {"left": lambda x: 2.0},
     {"top": lambda y: 0.0},
     {"bottom": lambda y: 0.0}
 ]
 
 # Neumann boundary conditions
+# Usage: {"side": value} 
 NEUMANN_BC: Final[list[dict]] = [
     {"right": -1.0},
     {"left": 2.0},
@@ -31,9 +33,10 @@ NEUMANN_BC: Final[list[dict]] = [
 ]
 
 # Inside boundary conditions
+# type: Dirichlet, Neumann, or None
 INSIDE_BC: Final[list[dict]] = [
     {
-        "type": "Dirichlet",
+        "type": "None",
         "x_range": [0.0, 90.0],
         "y": lambda x: 25.0 + 0.0005 * (x - 50.0) ** 3,
         "value": lambda x, y: 4.0
