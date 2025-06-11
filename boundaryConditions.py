@@ -29,7 +29,8 @@ class BoundaryCondition:
             "top_left": [],
             "top_right": []
         }
-# -----------------------------------------
+
+        # -----------------------------------------
         # Apply Dirichlet conditions
         # -----------------------------------------
         for d in self.dirichlet_:
@@ -168,9 +169,10 @@ class BoundaryCondition:
                     load_vector[idx] += mean_val
 
         # -----------------------------------------
-        # apply inside source term
+        # apply inside source term (robust, conservative, correct: each quad point to its element)
         # -----------------------------------------
         elements = mesh.get_elements() if hasattr(mesh, "get_elements") else []
+        total_source = 0.0  # For diagnostic print
         for inside in self.inside_:
             if "x_range" in inside and "y" in inside and "value" in inside:
                 x_min, x_max = inside["x_range"]
@@ -182,26 +184,18 @@ class BoundaryCondition:
                     y0, y1 = y_func(x0), y_func(x1)
                     p0 = np.array([x0, y0])
                     p1 = np.array([x1, y1])
-                    segment = np.stack([p0, p1])
                     segment_length = np.linalg.norm(p1 - p0)
-                    # Use Gaussian quadrature along the segment
-                    gauss_points, gauss_weights = np.polynomial.legendre.leggauss(3)
-                    for elem in elements:
-                        elem_nodes = nodes[list(elem)]
-                        x_e_min, y_e_min = np.min(elem_nodes, axis=0)
-                        x_e_max, y_e_max = np.max(elem_nodes, axis=0)
-                        # Check if the segment overlaps the element bounding box
-                        # (robust for structured mesh)
-                        if (max(x0, x1) < x_e_min or min(x0, x1) > x_e_max or
-                            max(y0, y1) < y_e_min or min(y0, y1) > y_e_max):
-                            continue
-                        # For each quadrature point along the segment
-                        for s, w in zip((gauss_points + 1) / 2, gauss_weights / 2):  # map from [-1,1] to [0,1]
-                            pt = p0 + s * (p1 - p0)
-                            # Check if pt is inside the element (axis-aligned bounding box)
+                    gauss_points, gauss_weights = np.polynomial.legendre.leggauss(4)
+                    for s, w in zip((gauss_points + 1) / 2, gauss_weights / 2):  # [0,1]
+                        pt = p0 + s * (p1 - p0)
+                        v = value_func(pt[0], pt[1])
+                        # Find the unique element containing pt
+                        for elem in elements:
+                            elem_nodes = nodes[list(elem)]
+                            x_e_min, y_e_min = np.min(elem_nodes, axis=0)
+                            x_e_max, y_e_max = np.max(elem_nodes, axis=0)
                             if not (x_e_min <= pt[0] <= x_e_max and y_e_min <= pt[1] <= y_e_max):
                                 continue
-                            # Map (x, y) to local (xi, eta) in [-1, 1]x[-1, 1]
                             x1e, y1e = elem_nodes[0]
                             x2e, y2e = elem_nodes[1]
                             x3e, y3e = elem_nodes[2]
@@ -220,6 +214,9 @@ class BoundaryCondition:
                                 0.25 * (1 + xi) * (1 + eta),
                                 0.25 * (1 - xi) * (1 + eta)
                             ])
-                            v = value_func(pt[0], pt[1])
                             for local_idx, global_idx in enumerate(elem):
-                                load_vector[global_idx] += v * N[local_idx] * w * segment_length
+                                contrib = v * N[local_idx] * w * segment_length
+                                load_vector[global_idx] += contrib
+                                total_source += contrib
+                            break  # Only one element contains pt
+        print(f"Total inside source applied to load vector: {total_source}")
