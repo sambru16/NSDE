@@ -201,4 +201,3 @@ class BoundaryCondition:
                                 elif btype == "neumann":
                                     v = value_func(x, y)
                                     load_vector[global_idx] += v
-                                break  # Only apply to one node per element per segment
