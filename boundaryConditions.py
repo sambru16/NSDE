@@ -164,9 +164,11 @@ class BoundaryCondition:
                 continue
             if len(vals) > 1:
                 if not all(np.isclose(vals[0], v) for v in vals[1:]):
-                    mean_val = np.mean(vals)
-                    print(f"Neumann conditions collide at {name.replace('_', '-')} corner. Arithmetic middle [value: {mean_val}] will be used.")
-                    load_vector[idx] += mean_val
+                    #mean_val = np.mean(vals)
+                    #print(f"Neumann conditions collide at {name.replace('_', '-')} corner. Arithmetic middle [value: {mean_val}] will be used.")
+                    sum_val = np.sum(vals) # Colliding Neuman values should be summed not averaged
+                    print(f"Neumann conditions collide at {name.replace('_', '-')} corner. Sum [value: {sum_val}] will be used.")
+                    load_vector[idx] += sum_val
 
         # -----------------------------------------
         # apply inside source term (robust, conservative, correct: each quad point to its element)
