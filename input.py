@@ -1,34 +1,51 @@
 from typing import Final
-import InputSettings
+import b.InputSettings as InputSettings
 import numpy as np
-from boundaryConditions import BoundaryCondition
+from b.boundaryConditions import BoundaryCondition
 
 class InputData:
-    def __init__(self):
+    def __init__(self, settings: dict = None):
         """
-        Validates input data from InputSettings.py constants.
+        Validates input data from InputSettings.py constants or from a provided dictionary.
         """
-        # Geometry
-        self.LENGTH: Final[float] = InputSettings.LENGTH
-        self.WIDTH: Final[float] = InputSettings.WIDTH
-        if self.LENGTH <= 0 or self.WIDTH <= 0:
-            raise ValueError("Geometry dimensions must be positive.")
+        if settings is not None:
+            # Use only the provided dictionary
+            self.LENGTH: Final[float] = settings["LENGTH"]
+            self.WIDTH: Final[float] = settings["WIDTH"]
+            if self.LENGTH <= 0 or self.WIDTH <= 0:
+                raise ValueError("Geometry dimensions must be positive.")
 
-        # Mesh
-        self.CX: Final[int] = InputSettings.CX
-        self.CY: Final[int] = InputSettings.CY
-        if self.CX <= 0 or self.CY <= 0:
-            raise ValueError("Mesh resolution (cx, cy) must be positive integers.")
+            self.CX: Final[int] = settings["CX"]
+            self.CY: Final[int] = settings["CY"]
+            if self.CX <= 0 or self.CY <= 0:
+                raise ValueError("Mesh resolution (cx, cy) must be positive integers.")
 
-        # Material tensor
-        self.TENSOR: Final[list] = InputSettings.TENSOR
-        if not isinstance(self.TENSOR, list) or len(self.TENSOR) < 2 or len(self.TENSOR[0]) < 2:
-            raise ValueError("Material tensor must be at least a 2x2 matrix.")
+            self.TENSOR: Final[list] = settings["TENSOR"]
+            if not isinstance(self.TENSOR, list) or len(self.TENSOR) < 2 or len(self.TENSOR[0]) < 2:
+                raise ValueError("Material tensor must be a 2x2 matrix.")
 
-        # Boundary conditions
-        dirichlet_bc = getattr(InputSettings, "DIRICHLET_BC", [])
-        neumann_bc = getattr(InputSettings, "NEUMANN_BC", [])
-        inside_bc = getattr(InputSettings, "INSIDE_BC", [])
+            dirichlet_bc = settings.get("DIRICHLET_BC", [])
+            neumann_bc = settings.get("NEUMANN_BC", [])
+            inside_bc = settings.get("INSIDE_BC", [])
+        else:
+            # Use only the InputSettings module
+            self.LENGTH: Final[float] = InputSettings.LENGTH
+            self.WIDTH: Final[float] = InputSettings.WIDTH
+            if self.LENGTH <= 0 or self.WIDTH <= 0:
+                raise ValueError("Geometry dimensions must be positive.")
+
+            self.CX: Final[int] = InputSettings.CX
+            self.CY: Final[int] = InputSettings.CY
+            if self.CX <= 0 or self.CY <= 0:
+                raise ValueError("Mesh resolution (cx, cy) must be positive integers.")
+
+            self.TENSOR: Final[list] = InputSettings.TENSOR
+            if not isinstance(self.TENSOR, list) or len(self.TENSOR) < 2 or len(self.TENSOR[0]) < 2:
+                raise ValueError("Material tensor must be a 2x2 matrix.")
+
+            dirichlet_bc = getattr(InputSettings, "DIRICHLET_BC", [])
+            neumann_bc = getattr(InputSettings, "NEUMANN_BC", [])
+            inside_bc = getattr(InputSettings, "INSIDE_BC", [])
 
         self.boundary = BoundaryCondition(
             dirichlet_bc, neumann_bc, inside_bc,

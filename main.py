@@ -6,7 +6,7 @@ from materialModel import MaterialModel
 from scipy.sparse.linalg import spsolve
 from assembler import assembleSystem
 import matplotlib.pyplot as plt
-from boundaryConditions import BoundaryCondition
+from b.boundaryConditions import BoundaryCondition
 
 def plot_quadmesh(mesh, U):
     """
@@ -45,14 +45,7 @@ def plot_quadmesh(mesh, U):
 
     plt.show()
 
-def main():
-    # Read input data
-    try:
-        input_data: Final[InputData] = InputData()
-    except Exception as e:
-        print(f"Error reading input: {e}")
-        return
-
+def main(input_data: InputData = None):
     # Extract data from input
     print(f"Length: {input_data.LENGTH}, Width: {input_data.WIDTH}, Tensor: {input_data.TENSOR}")
 
@@ -85,4 +78,4 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    main(InputData())

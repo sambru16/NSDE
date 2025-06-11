@@ -159,45 +159,58 @@ class BoundaryCondition:
                     load_vector[idx] += mean_val
 
         # -----------------------------------------
-        # apply inside conditions
+        # apply inside source term
         # -----------------------------------------
-        nodes = np.array(mesh.get_nodes())
         elements = mesh.get_elements() if hasattr(mesh, "get_elements") else []
         for inside in self.inside_:
-            btype = inside.get("type", "").lower()
-            if btype == "None":
-                break
-            # New format: x_range, y(x), value(x, y)
             if "x_range" in inside and "y" in inside and "value" in inside:
-                x_range = inside["x_range"]
+                x_min, x_max = inside["x_range"]
                 y_func = inside["y"]
                 value_func = inside["value"]
-                x_min, x_max = x_range
-                # Discretize the line into segments between mesh nodes in x
-                x_vals = [x_min + i * (x_max - x_min) / max(1, mesh.cx) for i in range(mesh.cx + 1)]
+                x_vals = [x_min + i * (x_max - x_min) / mesh.cx for i in range(mesh.cx + 1)]
                 for i in range(len(x_vals) - 1):
                     x0, x1 = x_vals[i], x_vals[i+1]
                     y0, y1 = y_func(x0), y_func(x1)
                     p0 = np.array([x0, y0])
                     p1 = np.array([x1, y1])
-                    # For each element, check if the segment [p0, p1] crosses the element
+                    segment = np.stack([p0, p1])
+                    segment_length = np.linalg.norm(p1 - p0)
+                    # Use Gaussian quadrature along the segment
+                    gauss_points, gauss_weights = np.polynomial.legendre.leggauss(3)
                     for elem in elements:
                         elem_nodes = nodes[list(elem)]
                         x_e_min, y_e_min = np.min(elem_nodes, axis=0)
                         x_e_max, y_e_max = np.max(elem_nodes, axis=0)
-                        # Check if either p0 or p1 is inside the element bounding box
-                        for pt in [p0, p1]:
-                            if (x_e_min <= pt[0] <= x_e_max) and (y_e_min <= pt[1] <= y_e_max):
-                                # Find nearest node in this element to pt
-                                dists = np.linalg.norm(elem_nodes - pt, axis=1)
-                                local_idx = np.argmin(dists)
-                                global_idx = elem[local_idx]
-                                x, y = nodes[global_idx]
-                                if btype == "dirichlet":
-                                    stiffness_matrix[global_idx, :] = 0
-                                    stiffness_matrix[global_idx, global_idx] = 1
-                                    v = value_func(x, y)
-                                    load_vector[global_idx] = v
-                                elif btype == "neumann":
-                                    v = value_func(x, y)
-                                    load_vector[global_idx] += v
+                        # Check if the segment overlaps the element bounding box
+                        # (robust for structured mesh)
+                        if (max(x0, x1) < x_e_min or min(x0, x1) > x_e_max or
+                            max(y0, y1) < y_e_min or min(y0, y1) > y_e_max):
+                            continue
+                        # For each quadrature point along the segment
+                        for s, w in zip((gauss_points + 1) / 2, gauss_weights / 2):  # map from [-1,1] to [0,1]
+                            pt = p0 + s * (p1 - p0)
+                            # Check if pt is inside the element (axis-aligned bounding box)
+                            if not (x_e_min <= pt[0] <= x_e_max and y_e_min <= pt[1] <= y_e_max):
+                                continue
+                            # Map (x, y) to local (xi, eta) in [-1, 1]x[-1, 1]
+                            x1e, y1e = elem_nodes[0]
+                            x2e, y2e = elem_nodes[1]
+                            x3e, y3e = elem_nodes[2]
+                            x4e, y4e = elem_nodes[3]
+                            dx = x2e - x1e
+                            dy = y4e - y1e
+                            if dx == 0 or dy == 0:
+                                continue
+                            xi = 2 * (pt[0] - x1e) / dx - 1
+                            eta = 2 * (pt[1] - y1e) / dy - 1
+                            if not (-1 <= xi <= 1 and -1 <= eta <= 1):
+                                continue
+                            N = np.array([
+                                0.25 * (1 - xi) * (1 - eta),
+                                0.25 * (1 + xi) * (1 - eta),
+                                0.25 * (1 + xi) * (1 + eta),
+                                0.25 * (1 - xi) * (1 + eta)
+                            ])
+                            v = value_func(pt[0], pt[1])
+                            for local_idx, global_idx in enumerate(elem):
+                                load_vector[global_idx] += v * N[local_idx] * w * segment_length
