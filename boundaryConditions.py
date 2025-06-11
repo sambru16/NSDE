@@ -29,8 +29,7 @@ class BoundaryCondition:
             "top_left": [],
             "top_right": []
         }
-
-        # -----------------------------------------
+# -----------------------------------------
         # Apply Dirichlet conditions
         # -----------------------------------------
         for d in self.dirichlet_:
@@ -147,11 +146,21 @@ class BoundaryCondition:
                     corner_values["top_right"].append(value)
 
         # Handle Neumann corner along with dirichlet cases
+        # Track which corners have Dirichlet set
+        dirichlet_corners = {
+            "bottom_left": len(corner_values["bottom_left"]) > 0,
+            "bottom_right": len(corner_values["bottom_right"]) > 0,
+            "top_left": len(corner_values["top_left"]) > 0,
+            "top_right": len(corner_values["top_right"]) > 0,
+        }
         for name, idx in zip(
             ["bottom_left", "bottom_right", "top_left", "top_right"],
             [bottom_left, bottom_right, top_left, top_right]
         ):
             vals = corner_values[name]
+            # If Dirichlet is set at this corner, ignore Neumann collision and do not print
+            if dirichlet_corners[name]:
+                continue
             if len(vals) > 1:
                 if not all(np.isclose(vals[0], v) for v in vals[1:]):
                     mean_val = np.mean(vals)

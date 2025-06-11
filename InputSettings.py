@@ -1,6 +1,4 @@
 from typing import Final
-from main import main
-from input import InputData
 
 # Diameter of the system
 LENGTH: Final[float] = 100.0
@@ -35,6 +33,3 @@ INSIDE_BC: Final[list[dict]] = [
         "value": lambda x, y: 4.0
     }
 ]
-
-if __name__ == "__main__":
-    main(InputData())

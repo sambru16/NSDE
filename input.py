@@ -1,7 +1,7 @@
 from typing import Final
-import b.InputSettings as InputSettings
+import InputSettings as InputSettings
 import numpy as np
-from b.boundaryConditions import BoundaryCondition
+from boundaryConditions import BoundaryCondition
 
 class InputData:
     def __init__(self, settings: dict = None):

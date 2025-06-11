@@ -1,12 +1,10 @@
 from input import InputData
 from mesh import QuadMesh
 from exportRes import EXPORT
-from typing import Final
 from materialModel import MaterialModel
 from scipy.sparse.linalg import spsolve
 from assembler import assembleSystem
 import matplotlib.pyplot as plt
-from b.boundaryConditions import BoundaryCondition
 
 def plot_quadmesh(mesh, U):
     """
