@@ -24,7 +24,7 @@ def test():
             "INSIDE_BC": [
                 {
                     "x_range": [0.0, 4.0],
-                    "y": lambda x: 2.0,
+                    "y": lambda x: 2.5,
                     "value": lambda x, y: 1.0
                 }
             ]

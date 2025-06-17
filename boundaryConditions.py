@@ -1,5 +1,6 @@
 import numpy as np
 from GaussianQuadrature import GaussianQuadrature
+from shapefunctions import ShapeFunctions
 
 class BoundaryCondition:
     def __init__(self, dirichlet, neumann, inside, element_lenght):
@@ -123,7 +124,7 @@ class BoundaryCondition:
                 p1 = nodes[idx1]
                 p2 = nodes[idx2]
                 edge_length = np.linalg.norm(p2 - p1)
-                # Define function for quadrature along the edge
+                # Function for quadrature along the edge
                 def g(s):
                     # s in [0, 1], interpolate position
                     pt = p1 + s * (p2 - p1)
@@ -159,22 +160,18 @@ class BoundaryCondition:
             [bottom_left, bottom_right, top_left, top_right]
         ):
             vals = corner_values[name]
-            # If Dirichlet is set at this corner, ignore Neumann collision and do not print
             if dirichlet_corners[name]:
                 continue
             if len(vals) > 1:
                 if not all(np.isclose(vals[0], v) for v in vals[1:]):
-                    #mean_val = np.mean(vals)
-                    #print(f"Neumann conditions collide at {name.replace('_', '-')} corner. Arithmetic middle [value: {mean_val}] will be used.")
                     sum_val = np.sum(vals) # Colliding Neuman values should be summed not averaged
                     print(f"Neumann conditions collide at {name.replace('_', '-')} corner. Sum [value: {sum_val}] will be used.")
                     load_vector[idx] += sum_val
 
         # -----------------------------------------
-        # apply inside source term (robust, conservative, correct: each quad point to its element)
+        # apply inside source term
         # -----------------------------------------
         elements = mesh.get_elements() if hasattr(mesh, "get_elements") else []
-        total_source = 0.0  # For diagnostic print
         for inside in self.inside_:
             if "x_range" in inside and "y" in inside and "value" in inside:
                 x_min, x_max = inside["x_range"]
@@ -191,7 +188,6 @@ class BoundaryCondition:
                     for s, w in zip((gauss_points + 1) / 2, gauss_weights / 2):  # [0,1]
                         pt = p0 + s * (p1 - p0)
                         v = value_func(pt[0], pt[1])
-                        # Find the unique element containing pt
                         for elem in elements:
                             elem_nodes = nodes[list(elem)]
                             x_e_min, y_e_min = np.min(elem_nodes, axis=0)
@@ -210,15 +206,10 @@ class BoundaryCondition:
                             eta = 2 * (pt[1] - y1e) / dy - 1
                             if not (-1 <= xi <= 1 and -1 <= eta <= 1):
                                 continue
-                            N = np.array([
-                                0.25 * (1 - xi) * (1 - eta),
-                                0.25 * (1 + xi) * (1 - eta),
-                                0.25 * (1 + xi) * (1 + eta),
-                                0.25 * (1 - xi) * (1 + eta)
-                            ])
+                            N = ShapeFunctions.shape_functions(xi, eta)
                             for local_idx, global_idx in enumerate(elem):
                                 contrib = v * N[local_idx] * w * segment_length
                                 load_vector[global_idx] += contrib
                                 total_source += contrib
-                            break  # Only one element contains pt
+                            break
         print(f"Total inside source applied to load vector: {total_source}")
