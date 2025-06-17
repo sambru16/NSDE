@@ -23,6 +23,11 @@ class InputData:
             self.TENSOR: Final[list] = settings["TENSOR"]
             if not isinstance(self.TENSOR, list) or len(self.TENSOR) < 2 or len(self.TENSOR[0]) < 2:
                 raise ValueError("Material tensor must be a 2x2 matrix.")
+            tensor_array = np.array(self.TENSOR)
+            if tensor_array.shape != (2, 2):
+                raise ValueError("Material tensor must be a 2x2 matrix.")
+            if not np.all(np.linalg.eigvals(tensor_array) > 0):
+                raise ValueError("Material tensor must be positive definite.")
 
             dirichlet_bc = settings.get("DIRICHLET_BC", [])
             neumann_bc = settings.get("NEUMANN_BC", [])
@@ -42,6 +47,9 @@ class InputData:
             self.TENSOR: Final[list] = InputSettings.TENSOR
             if not isinstance(self.TENSOR, list) or len(self.TENSOR) < 2 or len(self.TENSOR[0]) < 2:
                 raise ValueError("Material tensor must be a 2x2 matrix.")
+            tensor_array = np.array(self.TENSOR)
+            if not np.all(np.linalg.eigvals(tensor_array) > 0):
+                raise ValueError("Material tensor must be positive definite.")
 
             dirichlet_bc = getattr(InputSettings, "DIRICHLET_BC", [])
             neumann_bc = getattr(InputSettings, "NEUMANN_BC", [])

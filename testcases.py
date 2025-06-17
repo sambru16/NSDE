@@ -6,6 +6,29 @@ def test():
     Test cases for simulation with different parameters.
     """
     test_cases = [
+        { # Source test
+            "LENGTH": 5.0,
+            "WIDTH": 5.0,
+            "CX": 5,
+            "CY": 5,
+            "TENSOR": [
+                [1.0, 0.0],
+                [0.0, 1.0]
+            ],
+            "DIRICHLET_BC": [
+                {"right": lambda x: 0.0},
+                {"left": lambda x: 0.0},
+                {"top": lambda y: 0.0},
+                {"bottom": lambda y: 0.0}
+            ],
+            "INSIDE_BC": [
+                {
+                    "x_range": [0.0, 4.0],
+                    "y": lambda x: 2.0,
+                    "value": lambda x, y: 1.0
+                }
+            ]
+        },
         { # Condensator term with inside BC
             "LENGTH": 100.0,
             "WIDTH": 50.0,
