@@ -28,19 +28,6 @@ def plot_quadmesh(mesh, U):
     ax.set_title('FEM-Results')
     plt.grid(True)
     plt.tight_layout()
-
-    # Print the value in every box (cell)
-    #for i in range(cy):
-    #    for j in range(cx):
-    #        # Compute the center of the cell
-    #        x_center = 0.25 * (X[i, j] + X[i+1, j] + X[i, j+1] + X[i+1, j+1])
-    #        y_center = 0.25 * (Y[i, j] + Y[i+1, j] + Y[i, j+1] + Y[i+1, j+1])
-    #        # Get the values at the four corners of the cell
-    #        z_vals = [Z[i, j], Z[i+1, j], Z[i, j+1], Z[i+1, j+1]]
-    #        # Arithmetic mean for the cell value
-    #        cell_val = sum(z_vals) / 4
-    #        ax.text(x_center, y_center, f"{cell_val:.2f}", color='white', ha='center', va='center', fontsize=8, weight='bold')
-
     plt.show()
 
 def main(input_data: InputData = None):
@@ -57,7 +44,6 @@ def main(input_data: InputData = None):
     stiffness_matrix, load_vector = assembleSystem(mesh, material_model)
     # apply boundary conditions
     input_data.boundary.apply(mesh, stiffness_matrix, load_vector)
-    #applyBoundaryConditions(mesh, input_data.DIRICHLET_BOUNDARY_CONDITIONS, stiffness_matrix, load_vector)
 
     # Solve the system
     U = spsolve(stiffness_matrix.tocsr(), load_vector)

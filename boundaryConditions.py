@@ -11,7 +11,7 @@ class BoundaryCondition:
 
     def apply(self, mesh, stiffness_matrix, load_vector):
         """
-        Apply Dirichlet conditions to the stiffness matrix and load vector using mesh info.
+        
         """
         nodes = np.array(mesh.get_nodes())
         x_min, y_min = np.min(nodes, axis=0)

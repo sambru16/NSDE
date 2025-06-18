@@ -14,17 +14,11 @@ def assembleSystem(mesh, material_model):
 
     for element in mesh.get_elements():
         element_nodes = mesh.get_nodes()[element]
-        # Get conductivity tensor for this element from the material model
-        conductivity = material_model.material_tensor
-
-        # Use only the 2x2 part for 2D problems
-        conductivity_2d = np.array(conductivity)[:2, :2]
 
         # Local stiffness matrix
-        # TODO: function should be able to take 3x3 tensor
-        ke = gauss.localStiffnessMatrix(conductivity_2d, element_nodes)
+        ke = gauss.localStiffnessMatrix(material_model.material_tensor, element_nodes)
 
-        # Local load vector (assuming body force/source term is zero unless specified)
+        # Local load vector
         fe = gauss.loadVector(lambda x, y: 0.0, element_nodes)
         
         for i, ni in enumerate(element):
