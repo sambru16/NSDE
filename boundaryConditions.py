@@ -34,6 +34,7 @@ class BoundaryCondition:
         # -----------------------------------------
         # Apply Dirichlet conditions
         # -----------------------------------------
+        dirichlet_nodes = set()
         for d in self.dirichlet_:
             side = next(iter(d))
             cond = d[side]
@@ -66,6 +67,7 @@ class BoundaryCondition:
                 stiffness_matrix[idx, :] = 0
                 stiffness_matrix[idx, idx] = 1
                 load_vector[idx] = value
+                dirichlet_nodes.add(idx)  # <-- Track Dirichlet node
                 # Store corner values for later collision handling
                 if idx == bottom_left:
                     corner_values["bottom_left"].append(value)
@@ -172,6 +174,7 @@ class BoundaryCondition:
         # apply inside source term
         # -----------------------------------------
         elements = mesh.get_elements() if hasattr(mesh, "get_elements") else []
+        total_source = 0.0
         for inside in self.inside_:
             if "x_range" in inside and "y" in inside and "value" in inside:
                 x_min, x_max = inside["x_range"]
@@ -208,6 +211,8 @@ class BoundaryCondition:
                                 continue
                             N = ShapeFunctions.shape_functions(xi, eta)
                             for local_idx, global_idx in enumerate(elem):
+                                if global_idx in dirichlet_nodes:
+                                    continue  # Skip Dirichlet nodes
                                 contrib = v * N[local_idx] * w * segment_length
                                 load_vector[global_idx] += contrib
                                 total_source += contrib

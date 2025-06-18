@@ -7,6 +7,26 @@ def test():
     """
     test_cases = [
         { # Source test
+            "LENGTH": 10.0,
+            "WIDTH": 10.0,
+            "CX": 10,
+            "CY": 10,
+            "TENSOR": [
+                [1.0, 0.0],
+                [0.0, 1.0]
+            ],
+            "DIRICHLET_BC": [
+                {"top": lambda y: 0.0},
+            ],
+            "INSIDE_BC": [
+                {
+                    "x_range": [0.0, 10.0],
+                    "y": lambda x: 5.0,
+                    "value": lambda x, y: 1.0
+                }
+            ]
+        },
+        { # Source test
             "LENGTH": 5.0,
             "WIDTH": 5.0,
             "CX": 5,
