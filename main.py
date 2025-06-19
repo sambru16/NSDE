@@ -41,10 +41,9 @@ def main(input_data: InputData = None):
     material_model = MaterialModel(input_data.TENSOR)
 
     # returns the stiffness matrix and load vector
-    stiffness_matrix, load_vector = assembleSystem(mesh, material_model)
+    stiffness_matrix = assembleSystem(mesh, material_model, input_data.gauss)
     # apply boundary conditions
-    input_data.boundary.apply(mesh, stiffness_matrix, load_vector)
-
+    load_vector = input_data.boundary.apply(mesh, stiffness_matrix, input_data.gauss)
     # Solve the system
     U = spsolve(stiffness_matrix.tocsr(), load_vector)
     print("Solution vector:", U)

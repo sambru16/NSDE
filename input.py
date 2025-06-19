@@ -2,6 +2,7 @@ from typing import Final
 import InputSettings as InputSettings
 import numpy as np
 from boundaryConditions import BoundaryCondition
+from GaussianQuadrature import GaussianQuadrature
 
 class InputData:
     def __init__(self, settings: dict = None):
@@ -32,6 +33,8 @@ class InputData:
             dirichlet_bc = settings.get("DIRICHLET_BC", [])
             neumann_bc = settings.get("NEUMANN_BC", [])
             inside_bc = settings.get("INSIDE_BC", [])
+
+            self.gauss = GaussianQuadrature(settings.get("ORDER", 2))
         else:
             # Use only the InputSettings module
             self.LENGTH: Final[float] = InputSettings.LENGTH
@@ -54,6 +57,8 @@ class InputData:
             dirichlet_bc = getattr(InputSettings, "DIRICHLET_BC", [])
             neumann_bc = getattr(InputSettings, "NEUMANN_BC", [])
             inside_bc = getattr(InputSettings, "INSIDE_BC", [])
+
+            self.gauss = GaussianQuadrature(InputSettings.ORDER)
 
         self.boundary = BoundaryCondition(
             dirichlet_bc, neumann_bc, inside_bc,

@@ -16,8 +16,8 @@ def test():
                 [0.0, 1.0]
             ],
             "DIRICHLET_BC": [
-                {"top": lambda y: 0.0},
-                {"bottom": lambda y: y}
+                {"top": lambda x: 0.0},
+                {"bottom": lambda x: x}
             ],
         },
         { # Source test
@@ -30,7 +30,7 @@ def test():
                 [0.0, 1.0]
             ],
             "DIRICHLET_BC": [
-                {"top": lambda y: 0.0},
+                {"top": lambda x: 0.0},
             ],
             "INSIDE_BC": [
                 {
@@ -50,10 +50,10 @@ def test():
                 [0.0, 1.0]
             ],
             "DIRICHLET_BC": [
-                {"right": lambda x: 0.0},
-                {"left": lambda x: 0.0},
-                {"top": lambda y: 0.0},
-                {"bottom": lambda y: 0.0}
+                {"right": lambda y: 0.0},
+                {"left": lambda y: 0.0},
+                {"top": lambda x: 0.0},
+                {"bottom": lambda x: 0.0}
             ],
             "INSIDE_BC": [
                 {
@@ -73,12 +73,12 @@ def test():
                 [0.0, 1.0]
             ],
             "DIRICHLET_BC": [
-                {"right": lambda x: 50},
-                {"left": lambda x: -50},
+                {"right": lambda y: 50},
+                {"left": lambda y: -50},
             ],
             "NEUMANN_BC": [
-                {"top": 0.0},
-                {"bottom": 0.0}
+                {"top": lambda x: 0.0},
+                {"bottom": lambda x: 0.0}
             ],
             "INSIDE_BC": [
                 {
@@ -114,12 +114,12 @@ def test():
                 [0.0, 1.0]
             ],
             "DIRICHLET_BC": [
-                {"right": lambda x: 50},
-                {"left": lambda x: -50},
+                {"right": lambda y: 50},
+                {"left": lambda y: -50},
             ],
             "NEUMANN_BC": [
-                {"top": 0.0},
-                {"bottom": 0.0}
+                {"top": lambda x: 0.0},
+                {"bottom": lambda x: 0.0}
             ]
         }
     ]

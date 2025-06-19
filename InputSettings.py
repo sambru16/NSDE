@@ -17,19 +17,19 @@ TENSOR: Final[list[list[float]]] = [
 # Dirichlet boundary conditions
 # Usage: {"side": lambda x: value}
 DIRICHLET_BC: Final[list[dict]] = [
-    {"right": lambda x: -3},
-    {"left": lambda x: 2.0},
-    {"top": lambda y: 0.0},
-    {"bottom": lambda y: 0.0}
+    {"right": lambda y: -3},
+    {"left": lambda y: 2.0},
+    {"top": lambda x: 0.0},
+    {"bottom": lambda x: 0.0}
 ]
 
 # Neumann boundary conditions
 # Usage: {"side": value} 
 NEUMANN_BC: Final[list[dict]] = [
-    {"right": -1.0},
-    {"left": 2.0},
-    {"top": 1.0},
-    {"bottom": 1.0}
+    {"right": lambda y: -1.0},
+    {"left": lambda y: 2.0},
+    {"top": lambda x: 1.0},
+    {"bottom": lambda x: 1.0}
 ]
 
 # Inside boundary conditions
@@ -41,3 +41,6 @@ INSIDE_BC: Final[list[dict]] = [
         "value": lambda x, y: 4.0
     }
 ]
+
+# Gauss order
+ORDER: Final[int] = 2

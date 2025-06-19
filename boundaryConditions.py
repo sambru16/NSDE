@@ -9,13 +9,14 @@ class BoundaryCondition:
         self.inside_ = inside  if inside is not None else []
         self.element_lenght_ = element_lenght
 
-    def apply(self, mesh, stiffness_matrix, load_vector):
+    def apply(self, mesh, stiffness_matrix, gauss: GaussianQuadrature):
         """
         
         """
         nodes = np.array(mesh.get_nodes())
         x_min, y_min = np.min(nodes, axis=0)
         x_max, y_max = np.max(nodes, axis=0)
+        load_vector = np.zeros(len(nodes))
 
         # Corner indices
         bottom_left  = np.where(np.isclose(nodes[:,0], x_min) & np.isclose(nodes[:,1], y_min))[0][0]
@@ -92,7 +93,6 @@ class BoundaryCondition:
         # -----------------------------------------
         # Apply Neumann conditions with Gaussian quadrature, skipping Dirichlet nodes
         # -----------------------------------------
-        gauss = GaussianQuadrature()
         for n in self.neumann_:
             side = next(iter(n))
             cond = n[side]
@@ -118,57 +118,15 @@ class BoundaryCondition:
             # Sort nodes along the boundary for correct edge pairing
             sort_idx = np.argsort(coords)
             node_indices = node_indices[sort_idx]
-            coords = coords[sort_idx]
             # Integrate over each edge between two nodes
             for i in range(len(node_indices) - 1):
                 idx1 = node_indices[i]
                 idx2 = node_indices[i+1]
                 p1 = nodes[idx1]
                 p2 = nodes[idx2]
-                edge_length = np.linalg.norm(p2 - p1)
-                # Function for quadrature along the edge
-                def g(s):
-                    # s in [0, 1], interpolate position
-                    pt = p1 + s * (p2 - p1)
-                    if callable(cond):
-                        if axis == 0:
-                            return cond(pt[0])
-                        else:
-                            return cond(pt[1])
-                    else:
-                        return cond
-                integral = gauss.gaussianQuadrature(g, 0, 1) * edge_length
+                integral = gauss.gaussianQuadrature(cond, p1[axis], p2[axis])
                 load_vector[idx1] += 0.5 * integral
                 load_vector[idx2] += 0.5 * integral
-                if idx == bottom_left:
-                    corner_values["bottom_left"].append(value)
-                if idx == bottom_right:
-                    corner_values["bottom_right"].append(value)
-                if idx == top_left:
-                    corner_values["top_left"].append(value)
-                if idx == top_right:
-                    corner_values["top_right"].append(value)
-
-        # Handle Neumann corner along with dirichlet cases
-        # Track which corners have Dirichlet set
-        dirichlet_corners = {
-            "bottom_left": len(corner_values["bottom_left"]) > 0,
-            "bottom_right": len(corner_values["bottom_right"]) > 0,
-            "top_left": len(corner_values["top_left"]) > 0,
-            "top_right": len(corner_values["top_right"]) > 0,
-        }
-        for name, idx in zip(
-            ["bottom_left", "bottom_right", "top_left", "top_right"],
-            [bottom_left, bottom_right, top_left, top_right]
-        ):
-            vals = corner_values[name]
-            if dirichlet_corners[name]:
-                continue
-            if len(vals) > 1:
-                if not all(np.isclose(vals[0], v) for v in vals[1:]):
-                    sum_val = np.sum(vals) # Colliding Neuman values should be summed not averaged
-                    print(f"Neumann conditions collide at {name.replace('_', '-')} corner. Sum [value: {sum_val}] will be used.")
-                    load_vector[idx] += sum_val
 
         # -----------------------------------------
         # apply inside source term
@@ -187,7 +145,7 @@ class BoundaryCondition:
                     p0 = np.array([x0, y0])
                     p1 = np.array([x1, y1])
                     segment_length = np.linalg.norm(p1 - p0)
-                    gauss_points, gauss_weights = np.polynomial.legendre.leggauss(4)
+                    gauss_points, gauss_weights = gauss.points, gauss.weights
                     for s, w in zip((gauss_points + 1) / 2, gauss_weights / 2):  # [0,1]
                         pt = p0 + s * (p1 - p0)
                         v = value_func(pt[0], pt[1])
@@ -199,7 +157,6 @@ class BoundaryCondition:
                                 continue
                             x1e, y1e = elem_nodes[0]
                             x2e, y2e = elem_nodes[1]
-                            x3e, y3e = elem_nodes[2]
                             x4e, y4e = elem_nodes[3]
                             dx = x2e - x1e
                             dy = y4e - y1e
@@ -218,3 +175,4 @@ class BoundaryCondition:
                                 total_source += contrib
                             break
         print(f"Total inside source applied to load vector: {total_source}")
+        return load_vector
