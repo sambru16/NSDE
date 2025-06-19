@@ -42,7 +42,7 @@ def main(input_data: InputData = None):
 
     # returns the stiffness matrix and load vector
     stiffness_matrix = assembleSystem(mesh, material_model, input_data.gauss)
-    # apply boundary conditions
+    # calculate load vector with boundary conditions
     load_vector = input_data.boundary.apply(mesh, stiffness_matrix, input_data.gauss)
     # Solve the system
     U = spsolve(stiffness_matrix.tocsr(), load_vector)
@@ -57,6 +57,7 @@ def main(input_data: InputData = None):
     except Exception as e:
         print(f"Error exporting results: {e}")
 
+    # Plot Results
     plot_quadmesh(mesh, U)
 
 

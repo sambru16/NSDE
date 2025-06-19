@@ -142,62 +142,38 @@ class GaussianQuadrature:
                 K += self.weights[i] * self.weights[j] * numpy.linalg.det(J) * (dN_dx @ conductivity @ dN_dx.T)
         return K
 
-    def loadVector(self, f: callable, vertices):
-        """
-        Computes the load vector for a 4-node quadrilateral element.
+    # def loadVector(self, f: callable, vertices):
+    #     """
+    #     Computes the load vector for a 4-node quadrilateral element.
 
-        Parameters
-        ----------
-        f : callable
-            Function of two variables.
-        vertices : array-like of shape (4, 2)
-            Coordinates of the element nodes.
+    #     Parameters
+    #     ----------
+    #     f : callable
+    #         Function of two variables.
+    #     vertices : array-like of shape (4, 2)
+    #         Coordinates of the element nodes.
 
-        Returns
-        -------
-        ndarray of shape (4,)
-            Local load vector
-        """   
-        if not callable(f):
-            raise TypeError("Argument 'f' must be a callable function.")
-        vertices = numpy.asarray(vertices)
-        if vertices.shape != (4, 2):
-            raise TypeError("vertices must be a (4, 2) array representing 4 corner points in 2D.")
-        integral = 0.0
-        for i, xi in enumerate(self.points):
-            for j, eta in enumerate(self.points):
-                w = self.weights[i] * self.weights[j]
-                N = ShapeFunctions.shape_functions(xi, eta)
-                dN_dxi_eta = ShapeFunctions.shape_functions_deriviative(xi, eta)
-                x, y = N @ vertices
-                J = ShapeFunctions.jacobi_matrix(dN_dxi_eta, vertices)  # (2, 2)
-                detJ = numpy.linalg.det(J)
-                try:
-                    integral += N * f(x, y) * w * detJ
-                except Exception as e:
-                    raise ValueError(f"Function call f(x, y) failed or the return value is not numeric: {e}")
-        return integral
-
-
-# # How to use: 
-# # example function
-# f = lambda x, y: x + y
-# gauss1 = GaussianQuadrature()
-# gauss2 = GaussianQuadrature(10)
-# # # 1st-order Gaussian quadrature of function f(x, y) over the rectangle [[0, 0], [2, 1], [0, 1], [2, 0]]
-# print(gauss1.gaussianQuadratureRectangle(f, 0, 2, 0, 1))
-# # # 20th-order Gaussian quadrature of the same function over the same rectangle
-# print(gauss2.gaussianQuadratureRectangle(f, 0, 2, 0, 1))
-# # Define 4 points (x_i, y_i)
-# quad = [[0, 0], [2, 0], [2, 1], [0, 1]]
-# # Gaussian quadrature of function f over the defined quadrilateral (CCW corner order is required)
-# print(gauss1.gaussianQuadratureQuadrilateral(f, quad))
-# print(gauss2.gaussianQuadratureQuadrilateral(f, quad))
-# # Conductivity Matrix example
-# conductivity = numpy.array([[1.0, 0.0],[0.0, 1.0]])
-# # Calculation of local stiffness matrix
-# print(gauss1.localStiffnessMatrix(conductivity, quad))
-# print(gauss2.localStiffnessMatrix(conductivity, quad))
-# # Calculation of load vector
-# print(gauss1.loadVector(f, quad))
-# print(gauss2.loadVector(f, quad))
+    #     Returns
+    #     -------
+    #     ndarray of shape (4,)
+    #         Local load vector
+    #     """   
+    #     if not callable(f):
+    #         raise TypeError("Argument 'f' must be a callable function.")
+    #     vertices = numpy.asarray(vertices)
+    #     if vertices.shape != (4, 2):
+    #         raise TypeError("vertices must be a (4, 2) array representing 4 corner points in 2D.")
+    #     integral = 0.0
+    #     for i, xi in enumerate(self.points):
+    #         for j, eta in enumerate(self.points):
+    #             w = self.weights[i] * self.weights[j]
+    #             N = ShapeFunctions.shape_functions(xi, eta)
+    #             dN_dxi_eta = ShapeFunctions.shape_functions_deriviative(xi, eta)
+    #             x, y = N @ vertices
+    #             J = ShapeFunctions.jacobi_matrix(dN_dxi_eta, vertices)  # (2, 2)
+    #             detJ = numpy.linalg.det(J)
+    #             try:
+    #                 integral += N * f(x, y) * w * detJ
+    #             except Exception as e:
+    #                 raise ValueError(f"Function call f(x, y) failed or the return value is not numeric: {e}")
+    #     return integral

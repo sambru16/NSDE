@@ -7,12 +7,8 @@ class BoundaryCondition:
         self.dirichlet_ = dirichlet if dirichlet is not None else []
         self.neumann_ = neumann if neumann is not None else []
         self.inside_ = inside  if inside is not None else []
-        self.element_lenght_ = element_lenght
 
     def apply(self, mesh, stiffness_matrix, gauss: GaussianQuadrature):
-        """
-        
-        """
         nodes = np.array(mesh.get_nodes())
         x_min, y_min = np.min(nodes, axis=0)
         x_max, y_max = np.max(nodes, axis=0)
@@ -39,32 +35,26 @@ class BoundaryCondition:
         for d in self.dirichlet_:
             side = next(iter(d))
             cond = d[side]
+            if not callable(cond):
+                raise TypeError("Dirichlet Boundary Conditions (Input) must be callable.")
             if side == "left":
                 mask = np.isclose(nodes[:,0], x_min)
                 param = nodes[mask][:,1]  # y coordinate
-                length = y_max - y_min
             elif side == "right":
                 mask = np.isclose(nodes[:,0], x_max)
                 param = nodes[mask][:,1]  # y coordinate
-                length = y_max - y_min
             elif side == "bottom":
                 mask = np.isclose(nodes[:,1], y_min)
                 param = nodes[mask][:,0]  # x coordinate
-                length = x_max - x_min
             elif side == "top":
                 mask = np.isclose(nodes[:,1], y_max)
                 param = nodes[mask][:,0]  # x coordinate
-                length = x_max - x_min
             else:
                 continue
 
             node_indices = np.where(mask)[0]
             for idx, p in zip(node_indices, param):
-                t = (p - (y_min if side in ["left", "right"] else x_min)) / (length if length != 0 else 1)
-                if callable(cond):
-                    value = cond(t * length)
-                else:
-                    value = cond
+                value = cond(p)
                 stiffness_matrix[idx, :] = 0
                 stiffness_matrix[idx, idx] = 1
                 load_vector[idx] = value
@@ -96,6 +86,8 @@ class BoundaryCondition:
         for n in self.neumann_:
             side = next(iter(n))
             cond = n[side]
+            if not callable(cond):
+                raise TypeError("Neumann Boundary Conditions (Input) must be callable.")
             if side == "left":
                 mask = np.isclose(nodes[:,0], x_min)
                 coords = nodes[mask][:,1]
